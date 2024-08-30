@@ -81,15 +81,43 @@ const useAsyncIteratorApproach = () => {
   return { iteratorResult, runIterator };
 };
 
+// Hook using sequential approach
+const useSequentialApproach = () => {
+  const [sequentialResult, setSequentialResult] = useState<Result>(null);
+
+  const runSequential = useCallback(async () => {
+    const startTime = performance.now();
+    let count = 0;
+
+    try {
+      for (let i = 0; i < 100000; i++) {
+        await dummyAsyncOperation();
+        count++;
+      }
+      const endTime = performance.now();
+      setSequentialResult({
+        count,
+        time: endTime - startTime,
+      });
+    } catch (error) {
+      if (error instanceof Error) setSequentialResult({ error: error.message });
+    }
+  }, []);
+
+  return { sequentialResult, runSequential };
+};
+
 function App() {
   const { recursiveResult, runRecursive } = useRecursiveApproach();
   const { iteratorResult, runIterator } = useAsyncIteratorApproach();
+  const { sequentialResult, runSequential } = useSequentialApproach();
 
   return (
     <>
       <div>
         <button onClick={runRecursive}>Recusively calls 100k</button>
         <button onClick={runIterator}>Async iterators call 100k</button>
+        <button onClick={runSequential}>Sequentially calls 100k</button>
       </div>
       <div>
         <h2>Recursive approach</h2>
@@ -109,6 +137,16 @@ function App() {
           </p>
         ) : iteratorResult && "error" in iteratorResult ? (
           <p>Error: {iteratorResult.error}</p>
+        ) : null}
+      </div>
+      <div>
+        <h2>Sequential approach</h2>
+        {sequentialResult && "count" in sequentialResult ? (
+          <p>
+            Count: {sequentialResult.count}, Time: {sequentialResult.time}ms
+          </p>
+        ) : sequentialResult && "error" in sequentialResult ? (
+          <p>Error: {sequentialResult.error}</p>
         ) : null}
       </div>
     </>
